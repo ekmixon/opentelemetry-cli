@@ -8,10 +8,7 @@ def remove_prefix(val: str, prefix: str):
 
     If prefix does not exist in string, return a copy of the original string.
     """
-    if val.startswith(prefix):
-        return val[len(prefix) :]
-    else:
-        return val
+    return val[len(prefix) :] if val.startswith(prefix) else val
 
 
 def strtobool(val: str) -> bool:
@@ -22,9 +19,9 @@ def strtobool(val: str) -> bool:
     false, off and 0. Raises ValueError if val is anything else.
     """
     val = val.lower()
-    if val in ("y", "yes", "t", "true", "on", "1"):
+    if val in {"y", "yes", "t", "true", "on", "1"}:
         return True
-    elif val in ("n", "no", "f", "false", "off", "0"):
+    elif val in {"n", "no", "f", "false", "off", "0"}:
         return False
     else:
         raise ValueError(f"Unable to parse '{val!r}' as boolean")
@@ -73,16 +70,16 @@ def parse_attributes(attrs: Iterable[str]) -> Mapping[str, Union[str, int, list,
             continue
 
         prefix_match = prefix_pattern.match(prefix)
-        prefix_type = prefix_match.group("type")
+        prefix_type = prefix_match["type"]
         cast_function = _attribute_casting.get(prefix_type, lambda x: x)
 
-        if prefix_match.group("array") is None:
+        if prefix_match["array"] is None:
             attributes[key] = cast_function(value)
             continue
 
-        value_separator = prefix_match.group("sep") or ","
+        value_separator = prefix_match["sep"] or ","
         attributes[key] = tuple(
-            [cast_function(item) for item in value.split(value_separator)]
+            cast_function(item) for item in value.split(value_separator)
         )
 
     return attributes
@@ -104,7 +101,7 @@ def collect_attributes(
     """
     attributes = {}
     if options.get("attribute_file"):
-        attributes.update(parse_attribute_file(options["attribute_file"]))
+        attributes |= parse_attribute_file(options["attribute_file"])
     if options.get("attribute"):
         attributes.update(parse_attributes(options["attribute"]))
     return attributes
